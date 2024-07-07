@@ -39,7 +39,7 @@ app.post("/api/v1/register", async (req, res) => {
         });
         res.status(200).json(response.data);
     } catch (error) {
-        console.log("sent");
+        //console.log("sent");
         if(error.code === 'ENOTFOUND'){
             res.status(502).json({
                 error: "Instance not found",
@@ -58,7 +58,7 @@ app.post("/api/v1/register", async (req, res) => {
 
 //authenticate user
 app.post("/api/v1/auth", async(req, res) => {
-    console.log(req.body);
+    //console.log(req.body);
     try {
         const response = await axios.post(`https://${req.body.instance}/oauth/token`, {
             client_id: req.body.id,
@@ -73,8 +73,11 @@ app.post("/api/v1/auth", async(req, res) => {
                 Authorization: `Bearer ${response.data.access_token}`,
             }
         });
-        res.status(200).json({account: verify.data, token: response.data.access_token});
-        console.log(verify.data);
+        res.status(200).json({
+            account: verify.data, 
+            token: response.data.access_token
+        });
+        //console.log(verify.data);
     } catch (error) {
         console.log(error);;
         if(error.code === 'ENOTFOUND'){
@@ -94,10 +97,11 @@ app.post("/api/v1/auth", async(req, res) => {
 })
 
 //fetch user account data
-app.post("/api/v1/accounts/:id", async (req, res) => {
+app.get("/api/v1/accounts/:id", async (req, res) => {
     try {
-        const account = await axios.get(`https://${req.body.instance}/api/v1/accounts/${req.params.id}`);
-        const statuses = await axios.get(`https://${req.body.instance}/api/v1/accounts/${req.params.id}/statuses`);
+        const account = await axios.get(`https://${req.query.instance}/api/v1/accounts/${req.params.id}`);
+        const statuses = await axios.get(`https://${req.query.instance}/api/v1/accounts/${req.params.id}/statuses`);
+        console.log(account.data);
         res.status(200).json({
             status: "Success",
             account: account.data,
@@ -106,7 +110,6 @@ app.post("/api/v1/accounts/:id", async (req, res) => {
                 list: statuses.data,
             },
         });
-        //console.log(response.data);
     } catch (error) {
         //console.log(error.response.data);;
         if(error.code === 'ENOTFOUND'){
@@ -126,7 +129,7 @@ app.post("/api/v1/accounts/:id", async (req, res) => {
 });
 
 //edit user profile
-app.put("/api/v1/accounts", async (req, res) => {
+app.patch("/api/v1/accounts", async (req, res) => {
     //console.log(req.body);
     try {
         const response = await axios.patch(`https://${req.body.instance}/api/v1/accounts/update_credentials`, {
@@ -158,16 +161,16 @@ app.put("/api/v1/accounts", async (req, res) => {
 });
 
 //search 
-app.post("/api/v1/search", async (req, res) => {
+app.get("/api/v1/search", async (req, res) => {
     //console.log(req.body);
     try {
-        const response = await axios.get(`https://${req.body.instance}/api/v2/search`, {
+        const response = await axios.get(`https://${req.query.instance}/api/v2/search`, {
             params: {
-                q: req.body.q,
+                q: req.query.q,
                 //max_id: req.body.max_id,
             },
             headers: {
-                Authorization: `Bearer ${req.body.token}`,
+                Authorization: `Bearer ${req.query.token}`,
             },
         });
         //console.log(response.data.statuses.length)
@@ -418,16 +421,16 @@ app.post("/api/v1/statuses/:id/boost", async (req, res) => {
 });
 
 //fetch a status
-app.post("/api/v1/statuses/:id", async (req, res) => {
+app.get("/api/v1/statuses/:id", async (req, res) => {
     try {
-        const status = await axios.get(`https://${req.body.instance}/api/v1/statuses/${req.params.id}`, {
+        const status = await axios.get(`https://${req.query.instance}/api/v1/statuses/${req.params.id}`, {
             headers: {
-                Authorization: `Bearer ${req.body.token}`,
+                Authorization: `Bearer ${req.query.token}`,
             },
         });
-        const replies = await axios.get(`https://${req.body.instance}/api/v1/statuses/${req.params.id}/context`, {
+        const replies = await axios.get(`https://${req.query.instance}/api/v1/statuses/${req.params.id}/context`, {
             headers: {
-                Authorization: `Bearer ${req.body.token}`,
+                Authorization: `Bearer ${req.query.token}`,
             },
         });
         res.status(200).json({
@@ -453,14 +456,14 @@ app.post("/api/v1/statuses/:id", async (req, res) => {
 });
 
 //fetch tag timeline
-app.post("/api/v1/timelines/tag/:name", async (req, res) => {
+app.get("/api/v1/timelines/tag/:name", async (req, res) => {
     try {
-        const response = await axios.get(`https://${req.body.instance}/api/v1/timelines/tag/${req.params.name}?limit=30`, {
+        const response = await axios.get(`https://${req.query.instance}/api/v1/timelines/tag/${req.params.name}?limit=30`, {
             headers: {
-                Authorization: `Bearer ${req.body.token}`,
+                Authorization: `Bearer ${req.query.token}`,
             },
             params: {
-                max_id: req.body.max_id,
+                max_id: req.query.max_id,
             },
         });
         res.json({
@@ -486,15 +489,15 @@ app.post("/api/v1/timelines/tag/:name", async (req, res) => {
 })
 
 //fetch home timeline 
-app.post("/api/v1/timelines/home", async (req, res) => {
-    //console.log(req.body);
+app.get("/api/v1/timelines/home", async (req, res) => {
+    //console.log(req.query);
     try {
-        const response = await axios.get(`https://${req.body.instance}/api/v1/timelines/home?limit=30`, {
+        const response = await axios.get(`https://${req.query.instance}/api/v1/timelines/home?limit=30`, {
             headers: {
-                Authorization: `Bearer ${req.body.token}`
+                Authorization: `Bearer ${req.query.token}`
             },
             params: {
-                max_id: req.body.max_id,
+                max_id: req.query.max_id,
             },
         });
         res.json({
