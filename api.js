@@ -2,11 +2,14 @@ import express, { response } from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import axios from "axios";
+import statusMonitor from "express-status-monitor";
+import serverlessExpress from "aws-serverless-express";
 
 const app = express();
 const port = process.env.PORT || 3000
 const ref = new Date(1/1/1970);
 
+app.use(statusMonitor());
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -523,6 +526,19 @@ app.get("/api/v1/timelines/home", async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Listening on port ${port}`);
-});
+const server = serverlessExpress.createServer(app);
+exports.main = (event, context) => serverlessExpress.proxy(server, event, context)
+
+// const isInLambda = !!process.env.LAMBDA_TASK_ROOT;
+// if (isInLambda) {
+//     const serverlessExpress = require('aws-serverless-express');
+//     const server = serverlessExpress.createServer(app);
+//     exports.main = (event, context) => serverlessExpress.proxy(server, event, context)
+// } else {
+//     app.listen(3000, () => console.log(`Listening on 3000`));
+// }
+
+
+// app.listen(port, () => {
+//     console.log(`Listening on port ${port}`);
+// });
