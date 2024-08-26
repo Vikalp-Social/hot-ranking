@@ -103,17 +103,27 @@ app.post("/api/v1/auth", async(req, res) => {
 app.get("/api/v1/accounts/:id", async (req, res) => {
     try {
         const account = await axios.get(`https://${req.query.instance}/api/v1/accounts/${req.params.id}`);
-        const statuses = await axios.get(`https://${req.query.instance}/api/v1/accounts/${req.params.id}/statuses`);
-        //console.log(account.data);
+        const statuses = await axios.get(`https://${req.query.instance}/api/v1/accounts/${req.params.id}/statuses`, {
+            headers: {
+                Authorization: `Bearer ${req.query.token}`,
+            },
+            params: {
+                max_id: req.query.max_id
+            }
+        }
+        );
+        //console.log(statuses.data);
         res.status(200).json({
             status: "Success",
             account: account.data,
             statuses: {
                 count: statuses.data.length,
-                list: statuses.data,
+                list: statuses.data || [],
+                max_id: statuses.data[statuses.data.length - 1]?.id || -1, 
             },
         });
     } catch (error) {
+        console.log(error)
         //console.log(error.response.data);;
         if(error.code === 'ENOTFOUND'){
             res.status(502).json({
@@ -322,6 +332,7 @@ app.post("/api/v1/statuses", async (req, res) => {
                 Authorization: `Bearer ${req.body.token}`,
             },
         });
+        //console.log(response.data)
         res.status(200).json(response.data);
     } catch (error) {
         //console.log(error);
@@ -526,8 +537,8 @@ app.get("/api/v1/timelines/home", async (req, res) => {
     }
 });
 
-const server = serverlessExpress.createServer(app);
-exports.main = (event, context) => serverlessExpress.proxy(server, event, context)
+// const server = serverlessExpress.createServer(app);
+// export const handler = (event, context) => serverlessExpress.proxy(server, event, context)
 
 // const isInLambda = !!process.env.LAMBDA_TASK_ROOT;
 // if (isInLambda) {
@@ -539,6 +550,6 @@ exports.main = (event, context) => serverlessExpress.proxy(server, event, contex
 // }
 
 
-// app.listen(port, () => {
-//     console.log(`Listening on port ${port}`);
-// });
+app.listen(port, () => {
+    console.log(`Listening on port ${port}`);
+});
