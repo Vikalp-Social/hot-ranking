@@ -36,9 +36,9 @@ app.post("/api/v1/register", async (req, res) => {
     try {
         const response = await axios.post(`https://${req.body.instance}/api/v1/apps`, {
             client_name: "Vikalp",
-            redirect_uris: "http://localhost:3001/auth",
+            redirect_uris: "https://srg.social/auth/",
             scopes: "read write push",
-            website: "http://localhost:3001"
+            website: "https://srg.social/"
         });
         res.status(200).json(response.data);
     } catch (error) {
@@ -66,7 +66,7 @@ app.post("/api/v1/auth", async(req, res) => {
         const response = await axios.post(`https://${req.body.instance}/oauth/token`, {
             client_id: req.body.id,
             client_secret: req.body.secret,
-            redirect_uri: "http://localhost:3001/auth",
+            redirect_uri: "https://srg.social/auth/",
             grant_type: "authorization_code",
             code: req.body.code,
             scope: "read write push",
@@ -527,7 +527,8 @@ app.get("/api/v1/timelines/home", async (req, res) => {
 });
 
 const server = serverlessExpress.createServer(app);
-exports.main = (event, context) => serverlessExpress.proxy(server, event, context)
+// exports.main = (event, context) => serverlessExpress.proxy(server, event, context)
+export const handler = (event, context) => serverlessExpress.proxy(server, event, context)
 
 // const isInLambda = !!process.env.LAMBDA_TASK_ROOT;
 // if (isInLambda) {
@@ -539,6 +540,6 @@ exports.main = (event, context) => serverlessExpress.proxy(server, event, contex
 // }
 
 
-// app.listen(port, () => {
-//     console.log(`Listening on port ${port}`);
-// });
+app.listen(port, () => {
+    console.log(`Listening on port ${port}`);
+});
