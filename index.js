@@ -47,6 +47,12 @@ function handleError(res, error){
     }
 }
 
+app.get("/api/v1/health", (req, res) => {
+    res.status(200).json({
+        status: "ok",
+    });
+});
+
 //register app
 app.post("/api/v1/register", async (req, res) => {
     try {
