@@ -104,7 +104,7 @@ app.post("/api/v1/auth", async(req, res) => {
         });
         //console.log(verify.data);
     } catch (error) {
-        //console.log(error);;
+        //console.log(error);
         handleError(res, error)
     }
 })
@@ -133,7 +133,7 @@ app.get("/api/v1/accounts/:id", async (req, res) => {
             },
         });
     } catch (error) {
-        console.log(error)
+        //console.log(error)
         //console.log(error.response.data);;
         handleError(res, error)
     }
@@ -268,7 +268,7 @@ app.post("/api/v1/statuses", async (req, res) => {
 
 //edit a status
 app.put("/api/v1/statuses/:id", async (req, res) => {
-    console.log(req.body)
+    //console.log(req.body)
     try {
         const response = await axios.put(`https://${req.body.instance}/api/v1/statuses/${req.params.id}`, {status: req.body.text}, {
             headers: {
@@ -374,7 +374,7 @@ app.get("/api/v1/timelines/home", async (req, res) => {
         })
         //res.json(response.data);
     } catch (error) {
-        console.log(error)
+        //console.log(error)
         handleError(res, error)
     }
 });
