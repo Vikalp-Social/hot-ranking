@@ -54,28 +54,6 @@ app.get("/api/v1/health", (req, res) => {
     });
 });
 
-function handleError(res, error){
-    if(error.code === 'ENOTFOUND'){
-        res.status(502).json({
-            error: "Can't Establish a connection to the server",
-            status: 502,
-            statusText: "Bad Gateway",
-        });
-    } else {
-        res.status(400).json({
-            error: error.response.data.error,
-            status: error.response.status,
-            statusText: error.response.statusText,
-        });
-    }
-}
-
-app.get("/api/v1/health", (req, res) => {
-    res.status(200).json({
-        status: "ok",
-    });
-});
-
 //register app
 app.post("/api/v1/register", async (req, res) => {
     try {
