@@ -8,7 +8,7 @@ import serverlessExpress from "aws-serverless-express";
 const app = express();
 const port = process.env.PORT || 3000
 const ref = new Date(1/1/1970);
-const domain = "https://srg.social";
+const domain = "https://vikalp.social";
 
 app.use(statusMonitor());
 app.use(cors());
