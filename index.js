@@ -8,7 +8,7 @@ import serverlessExpress from "aws-serverless-express";
 const app = express();
 const port = process.env.PORT || 3000
 const ref = new Date(1/1/1970);
-const domain = "https://srg.social";
+const domain = "http://localhost:3001";
 
 app.use(statusMonitor());
 app.use(cors());
@@ -54,34 +54,12 @@ app.get("/api/v1/health", (req, res) => {
     });
 });
 
-function handleError(res, error){
-    if(error.code === 'ENOTFOUND'){
-        res.status(502).json({
-            error: "Can't Establish a connection to the server",
-            status: 502,
-            statusText: "Bad Gateway",
-        });
-    } else {
-        res.status(400).json({
-            error: error.response.data.error,
-            status: error.response.status,
-            statusText: error.response.statusText,
-        });
-    }
-}
-
-app.get("/api/v1/health", (req, res) => {
-    res.status(200).json({
-        status: "ok",
-    });
-});
-
 //register app
 app.post("/api/v1/register", async (req, res) => {
     try {
         const response = await axios.post(`https://${req.body.instance}/api/v1/apps`, {
             client_name: "Vikalp",
-            redirect_uris: `${domain}/auth/`,
+            redirect_uris: `${domain}/auth`,
             scopes: "read write push",
             website: `${domain}`,
         });
@@ -111,7 +89,7 @@ app.post("/api/v1/auth", async(req, res) => {
         const response = await axios.post(`https://${req.body.instance}/oauth/token`, {
             client_id: req.body.id,
             client_secret: req.body.secret,
-            redirect_uri: `${domain}/auth/`,
+            redirect_uri: `${domain}/auth`,
             grant_type: "authorization_code",
             code: req.body.code,
             scope: "read write push",
@@ -402,9 +380,9 @@ app.get("/api/v1/timelines/home", async (req, res) => {
     }
 });
 
-const server = serverlessExpress.createServer(app);
-// exports.main = (event, context) => serverlessExpress.proxy(server, event, context)
-export const handler = (event, context) => serverlessExpress.proxy(server, event, context)
+// const server = serverlessExpress.createServer(app);
+// // exports.main = (event, context) => serverlessExpress.proxy(server, event, context)
+// export const handler = (event, context) => serverlessExpress.proxy(server, event, context)
 
 // const isInLambda = !!process.env.LAMBDA_TASK_ROOT;
 // if (isInLambda) {
