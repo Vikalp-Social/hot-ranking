@@ -182,6 +182,46 @@ app.patch("/api/v1/accounts", async (req, res) => {
     }
 });
 
+app.get("/api/v1/accounts/:id/followers", async (req, res) => {
+    try {
+        const response = await axios.get(`https://${req.query.instance}/api/v1/accounts/${req.params.id}/followers`, {
+            headers: {
+                Authorization: `Bearer ${req.query.token}`,
+            },
+            params: {
+                max_id: req.query.max_id,
+            },
+        });
+        res.json({
+            accounts: response.data,
+            max_id: response.data[response.data.length - 1].id,
+        });
+    } catch (error) {
+        //console.log(error);;
+        handleError(res, error)
+    }
+});
+
+app.get("/api/v1/accounts/:id/following", async (req, res) => {
+    try {
+        const response = await axios.get(`https://${req.query.instance}/api/v1/accounts/${req.params.id}/following`, {
+            headers: {
+                Authorization: `Bearer ${req.query.token}`,
+            },
+            params: {
+                max_id: req.query.max_id,
+            },
+        });
+        res.json({
+            accounts: response.data,
+            max_id: response.data[response.data.length - 1].id,
+        });
+    } catch (error) {
+        //console.log(error);;
+        handleError(res, error)
+    }
+});
+
 //search 
 app.get("/api/v1/search", async (req, res) => {
     //console.log(req.body);
@@ -232,6 +272,21 @@ app.post("/api/v1/tags/:name/follow", async (req, res) => {
             },
         });
         res.status(200).json(response.data);
+    } catch (error) {
+        //console.log(error.response.data);;
+        handleError(res, error)
+    }
+});
+
+app.get("/api/v1/tags/following", async (req, res) => {
+    console.log(req.query);
+    try {
+        const tags = await axios.get(`https://${req.query.instance}/api/v1/followed_tags`, {
+            headers: {
+                Authorization: `Bearer ${req.query.token}`,
+            },
+        });
+        res.status(200).json(tags.data);
     } catch (error) {
         //console.log(error.response.data);;
         handleError(res, error)
