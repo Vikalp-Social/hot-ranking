@@ -8,7 +8,7 @@ import serverlessExpress from "aws-serverless-express";
 const app = express();
 const port = process.env.PORT || 3000
 const ref = new Date(1/1/1970);
-const domain = "https://srg.social";
+const domain = "https://vikalp.social";
 
 app.use(statusMonitor());
 app.use(cors());
@@ -31,28 +31,6 @@ function hotRanking(data){
     });
     return statuses.sort((a, b) => b.score - a.score);
 }
-
-function handleError(res, error){
-    if(error.code === 'ENOTFOUND'){
-        res.status(502).json({
-            error: "Can't Establish a connection to the server",
-            status: 502,
-            statusText: "Bad Gateway",
-        });
-    } else {
-        res.status(400).json({
-            error: error.response.data.error,
-            status: error.response.status,
-            statusText: error.response.statusText,
-        });
-    }
-}
-
-app.get("/api/v1/health", (req, res) => {
-    res.status(200).json({
-        status: "ok",
-    });
-});
 
 function handleError(res, error){
     if(error.code === 'ENOTFOUND'){
