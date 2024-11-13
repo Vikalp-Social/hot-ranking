@@ -257,7 +257,7 @@ app.post("/api/v1/tags/:name/follow", async (req, res) => {
 });
 
 app.get("/api/v1/tags/following", async (req, res) => {
-    console.log(req.query);
+    //console.log(req.query);
     try {
         const tags = await axios.get(`https://${req.query.instance}/api/v1/followed_tags`, {
             headers: {
