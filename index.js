@@ -1,4 +1,20 @@
-import baseServer from './base.js';
+import express from "express";
+import axios from "axios";
+import cors from "cors";
+import bodyParser from "body-parser";
+import statusMonitor from "express-status-monitor";
+
+import accountsRouter from "./routers/accounts.js";
+import authRouter from "./routers/auth.js";
+import healthRouter from "./routers/health.js";
+import registerRouter from "./routers/register.js";
+import searchRouter from "./routers/search.js";
+import statusesRouter from "./routers/statuses.js";
+import tagsRouter from "./routers/tags.js";
+import timelineRouter from "./routers/timeline.js";
+import handleError from "./handleError.js";
+
+export const domain = "http://localhost:3001";
 
 const ref = new Date(1/1/1970);
 
@@ -20,7 +36,48 @@ function hotRanking(data){
     return statuses.sort((a, b) => b.score - a.score);
 }
 
-const app = baseServer(hotRanking);
+const app = express();
+
+//middlewares
+app.use(statusMonitor());
+app.use(cors());
+app.use(bodyParser.json());
+
+/*override endpoints below here*/
+//fetch home timeline 
+app.get("/api/v1/timelines/home", async (req, res) => {
+    //console.log(req.query);
+    try {
+        const response = await axios.get(`https://${req.query.instance}/api/v1/timelines/home?limit=30`, {
+            headers: {
+                Authorization: `Bearer ${req.query.token}`
+            },
+            params: {
+                max_id: req.query.max_id,
+            },
+        });
+        res.json({
+            data: hotRanking(response.data),
+            max_id: response.data[response.data.length - 1].id || '',
+        })
+        //res.json(response.data);
+    } catch (error) {
+        console.log(error)
+        handleError(res, error)
+    }
+});
+
+/*and above here */
+
+//routes
+app.use("/api/v1/accounts", accountsRouter);
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/health", healthRouter);
+app.use("/api/v1/register", registerRouter);
+app.use("/api/v1/search", searchRouter);
+app.use("/api/v1/statuses", statusesRouter);
+app.use("/api/v1/tags", tagsRouter);
+app.use("/api/v1/timelines", timelineRouter);
 
 const port = 3000;
 app.listen(port, () => {
