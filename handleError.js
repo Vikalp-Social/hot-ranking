@@ -1,4 +1,5 @@
 function handleError(res, error){
+    console.log(error.code);
     if(error.code === 'ENOTFOUND'){
         res.status(502).json({
             error: "Can't Establish a connection to the server",

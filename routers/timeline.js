@@ -48,4 +48,25 @@ timelineRouter.get("/home", async (req, res) => {
     }
 });
 
+//fetch list timeline
+timelineRouter.get("/lists/:id", async (req, res) => {
+    try {
+        const response = await axios.get(`https://${req.query.instance}/api/v1/timelines/list/${req.params.id}?limit=20`, {
+            headers: {
+                Authorization: `Bearer ${req.query.token}`,
+            },
+            params: {
+                max_id: req.query.max_id,
+            },
+        });
+        res.json({
+            data: response.data,
+            max_id: response.data.length? response.data[response.data.length - 1] : "",
+        });
+    } catch (error) {
+        console.log(error);
+        handleError(res, error)
+    }
+})
+
 export default timelineRouter;
