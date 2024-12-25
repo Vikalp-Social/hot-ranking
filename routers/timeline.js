@@ -61,7 +61,7 @@ timelineRouter.get("/lists/:id", async (req, res) => {
         });
         res.json({
             data: response.data,
-            max_id: response.data.length? response.data[response.data.length - 1] : "",
+            max_id: response.data.length? response.data[response.data.length - 1].id : "",
         });
     } catch (error) {
         console.log(error);
