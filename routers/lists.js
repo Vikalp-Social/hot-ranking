@@ -1,18 +1,16 @@
-import express, { request, response } from 'express';
+import express from 'express';
 import axios from 'axios';
-import pg from "pg";
-import "dotenv/config";
 import handleError from '../handleError.js';
 
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand, UpdateCommand, DeleteCommand  } from '@aws-sdk/lib-dynamodb';
 
+const listsRouter = express.Router();
+
 // Initialize DynamoDB Client
 const client = new DynamoDBClient({ region: 'eu-north-1' });
 
 const docClient = DynamoDBDocumentClient.from(client);
-
-const listsRouter = express.Router();
 
 const tableName = "vikalp_lists_db"
 
@@ -118,7 +116,7 @@ async function deleteRow(id) {
 // Public Lists Routes
 
 //fetch public lists
-listsRouter.get("/public/", async (req, res) => {
+listsRouter.get("/public", async (req, res) => {
     try {
         const response = await fetchFullTable(tableName);
 
@@ -132,7 +130,7 @@ listsRouter.get("/public/", async (req, res) => {
 });
 
 //create a public list (also creates a private list)
-listsRouter.post("/public/", async (req, res) => {
+listsRouter.post("/public", async (req, res) => {
     try {
         const response = await axios.post(`https://${req.query.instance}/api/v1/lists`, req.body, {
             headers: {

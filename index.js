@@ -15,9 +15,7 @@ import timelineRouter from "./routers/timeline.js";
 import listsRouter from "./routers/lists.js";
 import handleError from "./handleError.js";
 
-export const domain = "http://localhost:3001";
-
-const ref = new Date(1/1/1970);
+import serverlessExpress from "aws-serverless-express";
 
 function score(date, likes, boosts){
     const d = new Date(date);
@@ -38,6 +36,9 @@ function hotRanking(data){
 }
 
 const app = express();
+const port = process.env.PORT || 3000
+const ref = new Date(1/1/1970);
+export const domain = "https://srg.social";
 
 //middlewares
 app.use(statusMonitor());
@@ -81,7 +82,10 @@ app.use("/api/v1/tags", tagsRouter);
 app.use("/api/v1/timelines", timelineRouter);
 app.use("/api/v1/lists", listsRouter);
 
-const port = 3000;
+const server = serverlessExpress.createServer(app);
+
+export const handler = (event, context) => serverlessExpress.proxy(server, event, context)
+
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+    console.log(`Listening on port ${port}`);
 });
