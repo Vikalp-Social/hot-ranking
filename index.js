@@ -14,6 +14,8 @@ import tagsRouter from "./routers/tags.js";
 import timelineRouter from "./routers/timeline.js";
 import handleError from "./handleError.js";
 
+import { DateTime } from 'luxon';
+
 import serverlessExpress from "aws-serverless-express";
 
 function score(date, likes, boosts){
@@ -34,6 +36,20 @@ function hotRanking(data){
     return statuses.sort((a, b) => b.score - a.score);
 }
 
+function isWithinLastHour(timestampStr) {
+
+    const inputDate = DateTime.fromISO(timestampStr, { zone: "utc" });
+    if (!inputDate.isValid) {
+        console.log("Invalid datetime", timestampStr)
+        return false;
+    }
+
+    const now = DateTime.utc();
+    const oneHourAgo = now.minus({ hours: 1 });
+
+    return inputDate >= oneHourAgo && inputDate <= now;
+}
+
 const app = express();
 const port = process.env.PORT || 3000
 const ref = new Date(1/1/1970);
@@ -47,8 +63,35 @@ app.use(bodyParser.json());
 /*override endpoints below here*/
 //fetch home timeline 
 app.get("/api/v1/timelines/home", async (req, res) => {
-    //console.log(req.query);
+
     try {
+        const { uid, exp , last_db_update } = req.query;
+
+        if (!uid)
+        {
+            console.log("uid is missing");
+        }
+        else if (!exp)
+        {
+            console.log("exp is missing");
+        }
+        else if(!last_db_update) {
+            console.log("last_db_update is missing");
+        }
+        else if (!isWithinLastHour(last_db_update)){
+            axios.post('https://auth.srg.social/api/v1/metric/log/activeUser', { last_db_update, uid, exp, algo: "hot" })
+            .catch(() => {}); // Fire-and-forget
+
+            console.log("Logged ", uid)
+        }
+
+    } catch (error) {
+        console.log(error)
+    }
+    try {
+
+        const { last_db_update } = req.query;
+        
         const response = await axios.get(`https://${req.query.instance}/api/v1/timelines/home?limit=30`, {
             headers: {
                 Authorization: `Bearer ${req.query.token}`
@@ -57,9 +100,13 @@ app.get("/api/v1/timelines/home", async (req, res) => {
                 max_id: req.query.max_id,
             },
         });
+
+        let update_last_db_update = {update_last_db_update : last_db_update == null ? true : !isWithinLastHour(last_db_update)};
+
         res.json({
             data: hotRanking(response.data),
             max_id: response.data[response.data.length - 1].id || '',
+            update_last_db_update,
         })
         //res.json(response.data);
     } catch (error) {
