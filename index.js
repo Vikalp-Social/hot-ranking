@@ -12,7 +12,6 @@ import searchRouter from "./routers/search.js";
 import statusesRouter from "./routers/statuses.js";
 import tagsRouter from "./routers/tags.js";
 import timelineRouter from "./routers/timeline.js";
-import listsRouter from "./routers/lists.js";
 import handleError from "./handleError.js";
 
 import serverlessExpress from "aws-serverless-express";
@@ -80,7 +79,6 @@ app.use("/api/v1/search", searchRouter);
 app.use("/api/v1/statuses", statusesRouter);
 app.use("/api/v1/tags", tagsRouter);
 app.use("/api/v1/timelines", timelineRouter);
-app.use("/api/v1/lists", listsRouter);
 
 const server = serverlessExpress.createServer(app);
 
