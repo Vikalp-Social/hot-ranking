@@ -1,11 +1,12 @@
 import express from 'express';
 import axios from 'axios';
 import handleError from '../handleError.js';
+import authenticate from '../authenticate.js';
 
 const searchRouter = express.Router();
 
 //search 
-searchRouter.get("/", async (req, res) => {
+searchRouter.get("/", authenticate, async (req, res) => {
     //console.log(req.body);
     try {
         const response = await axios.get(`https://${req.query.instance}/api/v2/search`, {
@@ -14,7 +15,7 @@ searchRouter.get("/", async (req, res) => {
                 //max_id: req.body.max_id,
             },
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
         //console.log(response.data.statuses.length)

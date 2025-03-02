@@ -1,16 +1,17 @@
 import express from 'express';
 import axios from 'axios';
 import handleError from '../handleError.js';
+import authenticate from '../authenticate.js';
 
 const accountsRouter = express.Router();
 
 //fetch user account data
-accountsRouter.get("/:id", async (req, res) => {
+accountsRouter.get("/:id", authenticate, async (req, res) => {
     try {
         const account = await axios.get(`https://${req.query.instance}/api/v1/accounts/${req.params.id}`);
         const statuses = await axios.get(`https://${req.query.instance}/api/v1/accounts/${req.params.id}/statuses`, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
             params: {
                 max_id: req.query.max_id
@@ -35,7 +36,7 @@ accountsRouter.get("/:id", async (req, res) => {
 });
 
 //edit user profile
-accountsRouter.patch("/", async (req, res) => {
+accountsRouter.patch("/", authenticate, async (req, res) => {
     //console.log(req.body);
     try {
         const response = await axios.patch(`https://${req.body.instance}/api/v1/accounts/update_credentials`, {
@@ -44,7 +45,7 @@ accountsRouter.patch("/", async (req, res) => {
         }, 
         {
             headers: {
-                Authorization: `Bearer ${req.body.token}`
+                Authorization: `Bearer ${req.token}`
             },
         });
         res.status(200).json(response.data);
@@ -55,11 +56,11 @@ accountsRouter.patch("/", async (req, res) => {
 });
 
 //fetch user followers
-accountsRouter.get("/:id/followers", async (req, res) => {
+accountsRouter.get("/:id/followers", authenticate, async (req, res) => {
     try {
         const response = await axios.get(`https://${req.query.instance}/api/v1/accounts/${req.params.id}/followers`, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
             params: {
                 max_id: req.query.max_id,
@@ -76,11 +77,11 @@ accountsRouter.get("/:id/followers", async (req, res) => {
 });
 
 //fetch user following
-accountsRouter.get("/:id/following", async (req, res) => {
+accountsRouter.get("/:id/following", authenticate, async (req, res) => {
     try {
         const response = await axios.get(`https://${req.query.instance}/api/v1/accounts/${req.params.id}/following`, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
             params: {
                 max_id: req.query.max_id,
@@ -97,11 +98,11 @@ accountsRouter.get("/:id/following", async (req, res) => {
 });
 
 //follow a user
-accountsRouter.post("/:id/follow", async (req, res) => {
+accountsRouter.post("/:id/follow", authenticate, async (req, res) => {
     try {
         const response = await axios.post(`https://${req.body.instance}/api/v1/accounts/${req.params.id}/follow`, {}, {
             headers: {
-                Authorization: `Bearer ${req.body.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
         res.status(200).json(response.data);
@@ -112,11 +113,11 @@ accountsRouter.post("/:id/follow", async (req, res) => {
 });
 
 //unfollow a user
-accountsRouter.post("/:id/unfollow", async (req, res) => {
+accountsRouter.post("/:id/unfollow", authenticate, async (req, res) => {
     try {
         const response = await axios.post(`https://${req.body.instance}/api/v1/accounts/${req.params.id}/unfollow`, {}, {
             headers: {
-                Authorization: `Bearer ${req.body.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
         res.status(200).json(response.data);

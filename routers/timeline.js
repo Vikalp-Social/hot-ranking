@@ -1,15 +1,16 @@
 import express from 'express';
 import axios from 'axios';
 import handleError from '../handleError.js';
+import authenticate from '../authenticate.js';
 
 const timelineRouter = express.Router();
 
 //fetch tag timeline
-timelineRouter.get("/tag/:name", async (req, res) => {
+timelineRouter.get("/tag/:name", authenticate, async (req, res) => {
     try {
         const response = await axios.get(`https://${req.query.instance}/api/v1/timelines/tag/${req.params.name}?limit=20`, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
             params: {
                 max_id: req.query.max_id,
@@ -26,12 +27,12 @@ timelineRouter.get("/tag/:name", async (req, res) => {
 })
 
 //fetch home timeline 
-timelineRouter.get("/home", async (req, res) => {
+timelineRouter.get("/home", authenticate, async (req, res) => {
     //console.log(req.query);
     try {
         const response = await axios.get(`https://${req.query.instance}/api/v1/timelines/home?limit=30`, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`
+                Authorization: `Bearer ${req.token}`
             },
             params: {
                 max_id: req.query.max_id,
@@ -49,11 +50,11 @@ timelineRouter.get("/home", async (req, res) => {
 });
 
 //fetch list timeline
-timelineRouter.get("/lists/:id", async (req, res) => {
+timelineRouter.get("/lists/:id", authenticate, async (req, res) => {
     try {
         const response = await axios.get(`https://${req.query.instance}/api/v1/timelines/list/${req.params.id}?limit=20`, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
             params: {
                 max_id: req.query.max_id,

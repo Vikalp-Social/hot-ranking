@@ -3,6 +3,8 @@ import axios from "axios";
 import cors from "cors";
 import bodyParser from "body-parser";
 import statusMonitor from "express-status-monitor";
+import cookieParser from "cookie-parser";
+import jwt from "jsonwebtoken"
 
 import accountsRouter from "./routers/accounts.js";
 import authRouter from "./routers/auth.js";
@@ -14,6 +16,7 @@ import tagsRouter from "./routers/tags.js";
 import timelineRouter from "./routers/timeline.js";
 import listsRouter from "./routers/lists.js";
 import handleError from "./handleError.js";
+import authenticate from "./authenticate.js";
 
 export const domain = "http://localhost:3001";
 
@@ -38,20 +41,22 @@ function hotRanking(data){
 }
 
 const app = express();
+const SECRET_KEY = "your_secret_key";
 
 //middlewares
 app.use(statusMonitor());
-app.use(cors());
+app.use(cookieParser());
+app.use(cors({ origin: "http://localhost:3001", credentials: true }));
 app.use(bodyParser.json());
 
 /*override endpoints below here*/
 //fetch home timeline 
-app.get("/api/v1/timelines/home", async (req, res) => {
+app.get("/api/v1/timelines/home", authenticate, async (req, res) => {
     //console.log(req.query);
     try {
         const response = await axios.get(`https://${req.query.instance}/api/v1/timelines/home?limit=30`, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`
+                Authorization: `Bearer ${req.token}`
             },
             params: {
                 max_id: req.query.max_id,

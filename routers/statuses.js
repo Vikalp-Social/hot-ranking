@@ -1,11 +1,12 @@
 import express from 'express';
 import axios from 'axios';
 import handleError from '../handleError.js';
+import authenticate from '../authenticate.js';
 
 const statusesRouter = express.Router();
 
 //post a status
-statusesRouter.post("/", async (req, res) => {
+statusesRouter.post("/", authenticate, async (req, res) => {
     //console.log(req.body)
     try {
         const response = await axios.post(`https://${req.body.instance}/api/v1/statuses`, {
@@ -14,7 +15,7 @@ statusesRouter.post("/", async (req, res) => {
             in_reply_to_id: req.body.reply_id,
         }, {
             headers: {
-                Authorization: `Bearer ${req.body.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
         //console.log(response.data)
@@ -26,16 +27,16 @@ statusesRouter.post("/", async (req, res) => {
 });
 
 //fetch a status
-statusesRouter.get("/:id", async (req, res) => {
+statusesRouter.get("/:id", authenticate, async (req, res) => {
     try {
         const status = await axios.get(`https://${req.query.instance}/api/v1/statuses/${req.params.id}`, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
         const replies = await axios.get(`https://${req.query.instance}/api/v1/statuses/${req.params.id}/context`, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
         res.status(200).json({
@@ -49,12 +50,12 @@ statusesRouter.get("/:id", async (req, res) => {
 });
 
 //edit a status
-statusesRouter.put("/:id", async (req, res) => {
+statusesRouter.put("/:id", authenticate, async (req, res) => {
     //console.log(req.body)
     try {
         const response = await axios.put(`https://${req.body.instance}/api/v1/statuses/${req.params.id}`, {status: req.body.text}, {
             headers: {
-                Authorization: `Bearer ${req.body.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
         res.status(200).json(response.data);
@@ -65,11 +66,11 @@ statusesRouter.put("/:id", async (req, res) => {
 })
 
 //favorite or unfavourite a status
-statusesRouter.post("/:id/favourite", async (req, res) => {
+statusesRouter.post("/:id/favourite", authenticate, async (req, res) => {
     try {
         const response = await axios.post(`https://${req.body.instance}/api/v1/statuses/${req.params.id}/${req.body.prefix}favourite`, {}, {
             headers: {
-                Authorization: `Bearer ${req.body.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
         res.status(200).json(response.data);
@@ -80,11 +81,11 @@ statusesRouter.post("/:id/favourite", async (req, res) => {
 });
 
 //boost or unboost a status
-statusesRouter.post("/:id/boost", async (req, res) => {
+statusesRouter.post("/:id/boost", authenticate, async (req, res) => {
     try {
         const response = await axios.post(`https://${req.body.instance}/api/v1/statuses/${req.params.id}/${req.body.prefix}reblog`, {}, {
             headers: {
-                Authorization: `Bearer ${req.body.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
         res.status(200).json(response.data);

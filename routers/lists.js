@@ -1,18 +1,17 @@
-import express, { request, response } from 'express';
+import express from 'express';
 import axios from 'axios';
-import pg from "pg";
-import "dotenv/config";
 import handleError from '../handleError.js';
+import authenticate from '../authenticate.js';
 
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand, UpdateCommand, DeleteCommand  } from '@aws-sdk/lib-dynamodb';
+
+const listsRouter = express.Router();
 
 // Initialize DynamoDB Client
 const client = new DynamoDBClient({ region: 'eu-north-1' });
 
 const docClient = DynamoDBDocumentClient.from(client);
-
-const listsRouter = express.Router();
 
 const tableName = "vikalp_lists_db"
 
@@ -118,7 +117,7 @@ async function deleteRow(id) {
 // Public Lists Routes
 
 //fetch public lists
-listsRouter.get("/public/", async (req, res) => {
+listsRouter.get("/public", async (req, res) => {
     try {
         const response = await fetchFullTable(tableName);
 
@@ -132,11 +131,11 @@ listsRouter.get("/public/", async (req, res) => {
 });
 
 //create a public list (also creates a private list)
-listsRouter.post("/public/", async (req, res) => {
+listsRouter.post("/public", authenticate, async (req, res) => {
     try {
         const response = await axios.post(`https://${req.query.instance}/api/v1/lists`, req.body, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
 
@@ -198,11 +197,11 @@ listsRouter.get("/public/:id/accounts", async (req, res) => {
 });
 
 //add members to a list (also adds to private list)
-listsRouter.post("/public/:id/accounts", async (req, res) => {
+listsRouter.post("/public/:id/accounts", authenticate, async (req, res) => {
     try {
         const response = await axios.post(`https://${req.query.instance}/api/v1/lists/${req.params.id}/accounts`, req.body, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
 
@@ -219,11 +218,11 @@ listsRouter.post("/public/:id/accounts", async (req, res) => {
 });
 
 //update a public list (also updates the private list)
-listsRouter.put("/public/:id", async (req, res) => {
+listsRouter.put("/public/:id", authenticate, async (req, res) => {
     try {
         const response = await axios.put(`https://${req.query.instance}/api/v1/lists/${req.params.id}`, req.body, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
 
@@ -257,11 +256,11 @@ listsRouter.delete("/public/:id", async (req, res) => {
 // Private Lists Rotues
 
 //fetch user private lists
-listsRouter.get("/", async (req, res) => {
+listsRouter.get("/", authenticate, async (req, res) => {
     try {
         const response = await axios.get(`https://${req.query.instance}/api/v1/lists`, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
         res.status(200).json(response.data);
@@ -272,11 +271,11 @@ listsRouter.get("/", async (req, res) => {
 });
 
 //create a private list
-listsRouter.post("/", async (req, res) => {
+listsRouter.post("/", authenticate, async (req, res) => {
     try {
         const response = await axios.post(`https://${req.query.instance}/api/v1/lists`, req.body, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
 
@@ -288,11 +287,11 @@ listsRouter.post("/", async (req, res) => {
 });
 
 //fetch a single private list
-listsRouter.get("/:id", async (req, res) => {
+listsRouter.get("/:id", authenticate, async (req, res) => {
     try {
         const response = await axios.get(`https://${req.query.instance}/api/v1/lists/${req.params.id}`, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
         res.status(200).json(response.data);
@@ -302,11 +301,11 @@ listsRouter.get("/:id", async (req, res) => {
 });
 
 //fetch list members
-listsRouter.get("/:id/accounts", async (req, res) => {
+listsRouter.get("/:id/accounts", authenticate, async (req, res) => {
     try {
         const response = await axios.get(`https://${req.query.instance}/api/v1/lists/${req.params.id}/accounts`, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
         res.status(200).json(response.data);
@@ -316,11 +315,11 @@ listsRouter.get("/:id/accounts", async (req, res) => {
 });
 
 //add members to a list
-listsRouter.post("/:id/accounts", async (req, res) => {
+listsRouter.post("/:id/accounts", authenticate, async (req, res) => {
     try {
         const response = await axios.post(`https://${req.query.instance}/api/v1/lists/${req.params.id}/accounts`, req.body, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
 
@@ -331,14 +330,14 @@ listsRouter.post("/:id/accounts", async (req, res) => {
 });
 
 //remove members from a list
-listsRouter.delete("/:id/accounts", async (req, res) => {
+listsRouter.delete("/:id/accounts", authenticate, async (req, res) => {
     try {
 
         console.log(req.body);
 
         const response = await axios.delete(`https://${req.query.instance}/api/v1/lists/${req.params.id}/accounts`, req.body, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
 
@@ -349,11 +348,11 @@ listsRouter.delete("/:id/accounts", async (req, res) => {
 });
 
 //update a list
-listsRouter.put("/:id", async (req, res) => {
+listsRouter.put("/:id", authenticate, async (req, res) => {
     try {
         const response = await axios.put(`https://${req.query.instance}/api/v1/lists/${req.params.id}`, req.body, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`,
+                Authorization: `Bearer ${req.token}`,
             },
         });
 
@@ -364,11 +363,11 @@ listsRouter.put("/:id", async (req, res) => {
 });
 
 //delete a list
-listsRouter.delete("/:id", async (req, res) => {
+listsRouter.delete("/:id", authenticate, async (req, res) => {
     try {
         const response = await axios.delete(`https://${req.query.instance}/api/v1/lists/${req.params.id}`, {
             headers: {
-                Authorization: `Bearer ${req.query.token}`, 
+                Authorization: `Bearer ${req.token}`, 
             },
         });
 

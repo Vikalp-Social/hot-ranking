@@ -2,8 +2,12 @@ import express from 'express';
 import axios from 'axios';
 import handleError from '../handleError.js';
 import {domain} from '../index.js';
+import cors from "cors";
+import jwt from "jsonwebtoken"
 
 const authRouter = express.Router();
+const algo = "hot";
+const SECRET_KEY = "your_secret_key";
 
 //authenticate user
 authRouter.post("/", async(req, res) => {
@@ -22,13 +26,39 @@ authRouter.post("/", async(req, res) => {
                 Authorization: `Bearer ${response.data.access_token}`,
             }
         });
+        console.log("verified");
+
+        const tokenPayload = {
+            uid: verify.data.id,
+            experience: req.body.exp,
+            lastDBUpdate: Date.now(),
+            loginTime: Date.now(),
+            algo,
+        };
+
+        const jwtToken = jwt.sign(tokenPayload, SECRET_KEY, { expiresIn: "1h" });
+
+        // Set the token as an HTTP-only cookie
+        res.cookie("auth_token", jwtToken, {
+            httpOnly: true, // Prevents JavaScript access
+            secure: false, // Set to true in production (requires HTTPS)
+            sameSite: "Strict", // Prevents CSRF
+            maxAge: 24 * 60 * 60 * 1000, // 1 day
+        });
+
+        res.cookie("access_token", response.data.access_token, {
+            httpOnly: true,  // Prevents JavaScript access
+            secure: false,   // Set to true in production (requires HTTPS)
+            sameSite: "Strict", // Prevents CSRF attacks
+            maxAge: 24 * 60 * 60 * 1000, // 1 day expiration
+        });
+
         res.status(200).json({
-            account: verify.data, 
-            token: response.data.access_token
+            account: verify.data,
         });
         //console.log(verify.data);
     } catch (error) {
-        //console.log(error);;
+        // console.log(error);
         handleError(res, error)
     }
 })
