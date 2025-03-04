@@ -4,7 +4,8 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import statusMonitor from "express-status-monitor";
 import cookieParser from "cookie-parser";
-import jwt from "jsonwebtoken"
+import { DateTime } from 'luxon';
+import bcrypt from "bcryptjs";
 
 import accountsRouter from "./routers/accounts.js";
 import authRouter from "./routers/auth.js";
@@ -16,8 +17,6 @@ import tagsRouter from "./routers/tags.js";
 import timelineRouter from "./routers/timeline.js";
 import handleError from "./handleError.js";
 import authenticate from "./authenticate.js";
-
-import { DateTime } from 'luxon';
 
 import serverlessExpress from "aws-serverless-express";
 
@@ -56,36 +55,47 @@ function isWithinLastHour(timestampStr) {
 const app = express();
 const port = process.env.PORT || 3000
 const ref = new Date(1/1/1970);
-export const domain = "https://srg.social";
-const SECRET_KEY = "your_secret_key";
+export const domain = "http://localhost:3001";
+const algo = "hot";
 
 //middlewares
 app.use(statusMonitor());
 app.use(cookieParser());
-app.use(cors({ origin: "http://localhost:3001", credentials: true }));
+app.use(cors({ origin: domain, credentials: true }));
 app.use(bodyParser.json());
 
 /*override endpoints below here*/
 //fetch home timeline 
 app.get("/api/v1/timelines/home", authenticate, async (req, res) => {
-
     try {
-        const { uid, exp , last_db_update } = req.query;
+        const metrics_token = JSON.parse(req.cookies.metrics_token);
+        console.log(metrics_token)
+        const { uid, experience, lastDBUpdate, loginTime, algo } = metrics_token;
 
-        if (!uid)
-        {
+        if (!uid){
             console.log("uid is missing");
         }
-        else if (!exp)
-        {
+        else if (!experience){
             console.log("exp is missing");
         }
-        else if(!last_db_update) {
+        else if(!lastDBUpdate) {
             console.log("last_db_update is missing");
         }
-        else if (!isWithinLastHour(last_db_update)){
-            axios.post('https://auth.srg.social/api/v1/metric/log/activeUser', { last_db_update, uid, exp, algo: "hot" })
+        else if (!isWithinLastHour(lastDBUpdate)){
+            const salt = bcrypt.genSaltSync(10);
+            let hashedUid = bcrypt.hashSync(uid, salt);
+
+            axios.post('https://auth.srg.social/api/v1/metric/log/activeUser', { lastDBUpdate, uid: hashedUid, exp: experience, algo })
             .catch(() => {}); // Fire-and-forget
+
+            metrics_token.lastDBUpdate = DateTime.utc();
+
+            res.cookie("metrics_token", JSON.stringify(metrics_token), {
+                httpOnly: true, // Prevents JavaScript access
+                secure: false, // Set to true in production (requires HTTPS)
+                sameSite: "Strict", // Prevents CSRF
+                maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day
+            });
 
             console.log("Logged ", uid)
         }
@@ -94,9 +104,6 @@ app.get("/api/v1/timelines/home", authenticate, async (req, res) => {
         console.log(error)
     }
     try {
-
-        const { last_db_update } = req.query;
-        
         const response = await axios.get(`https://${req.query.instance}/api/v1/timelines/home?limit=30`, {
             headers: {
                 Authorization: `Bearer ${req.token}`
@@ -106,12 +113,9 @@ app.get("/api/v1/timelines/home", authenticate, async (req, res) => {
             },
         });
 
-        let update_last_db_update = {update_last_db_update : last_db_update == null ? true : !isWithinLastHour(last_db_update)};
-
         res.json({
             data: hotRanking(response.data),
             max_id: response.data[response.data.length - 1].id || '',
-            update_last_db_update,
         })
         //res.json(response.data);
     } catch (error) {
