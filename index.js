@@ -55,7 +55,7 @@ function isWithinLastHour(timestampStr) {
 const app = express();
 const port = process.env.PORT || 3000
 const ref = new Date(1/1/1970);
-export const domain = "http://localhost:3001";
+export const domain = "https://srg.social";
 const algo = "hot";
 
 //middlewares
