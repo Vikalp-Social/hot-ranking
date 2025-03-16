@@ -55,7 +55,8 @@ function isWithinLastHour(timestampStr) {
 const app = express();
 const port = process.env.PORT || 3000
 const ref = new Date(1/1/1970);
-export const domain = "https://srg.social";
+// export const domain = "https://srg.social";
+export const domain = process.env.DOMAIN_TEST;
 const algo = "hot";
 
 //middlewares
@@ -68,6 +69,7 @@ app.use(bodyParser.json());
 //fetch home timeline 
 app.get("/api/v1/timelines/home", authenticate, async (req, res) => {
     try {
+        console.log("reached1")
         const metrics_token = JSON.parse(req.cookies.metrics_token);
         console.log(metrics_token)
         const { uid, experience, lastDBUpdate, loginTime, algo } = metrics_token;
@@ -103,6 +105,7 @@ app.get("/api/v1/timelines/home", authenticate, async (req, res) => {
     } catch (error) {
         console.log(error)
     }
+    console.log("reached")
     try {
         const response = await axios.get(`https://${req.query.instance}/api/v1/timelines/home?limit=30`, {
             headers: {
@@ -112,7 +115,7 @@ app.get("/api/v1/timelines/home", authenticate, async (req, res) => {
                 max_id: req.query.max_id,
             },
         });
-
+        console.log(response.data)
         res.json({
             data: hotRanking(response.data),
             max_id: response.data[response.data.length - 1].id || '',
