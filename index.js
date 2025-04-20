@@ -56,7 +56,7 @@ const app = express();
 const port = process.env.PORT || 3000
 const ref = new Date(1/1/1970);
 // export const domain = "https://srg.social";
-export const domain = process.env.DOMAIN_TEST;
+export const domain = 'http://localhost:3001';
 const algo = "hot";
 
 //middlewares
@@ -115,7 +115,7 @@ app.get("/api/v1/timelines/home", authenticate, async (req, res) => {
                 max_id: req.query.max_id,
             },
         });
-        console.log(response.data)
+        // console.log(response.data)
         res.json({
             data: hotRanking(response.data),
             max_id: response.data[response.data.length - 1].id || '',
